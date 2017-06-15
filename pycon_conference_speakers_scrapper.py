@@ -22,8 +22,8 @@ if __name__ == "__main__":
 
     if requests_res.status_code != requests.codes.ok:
         print(
-            "[!] Received unexpected HTTP response:  from PyCon website"
-            % requests_res.reason
+            "[!] Received unexpected HTTP response: %s from website"
+            % requests_res
         )
         exit(0)
 
