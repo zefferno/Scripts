@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCon speaker names and picture URL web-scrapper
+PyCon speakers web-scrapper
 """
 
 import re
