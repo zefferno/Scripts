@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """
@@ -25,7 +25,7 @@ if __name__ == "__main__":
             "[!] Received unexpected HTTP response: %s from website"
             % requests_res
         )
-        exit(0)
+        exit(1)
 
     soup = BeautifulSoup(requests_res.text, "html.parser")
 
