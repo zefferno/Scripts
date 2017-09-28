@@ -131,8 +131,6 @@ if __name__ == "__main__":
     speakerlist = _find_unique(html_elements, 'div', class_='view-content')
     db = []
     for head in speakerlist.find_all('h1'):
-        if head.text == 'Pycon Israel Team': continue
-        
         speaker = _find_parent_div(head, 'view-grouping')
         content = _find_parent_div(head, 'view-grouping-content')
         # several speakers might be packed together as a group with common image
