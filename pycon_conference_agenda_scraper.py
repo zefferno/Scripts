@@ -100,7 +100,7 @@ def get_session_data(sid, div):
         if not vals: continue
         a = vals[0]
         assert len(vals)==1 and vals[0].name=='a'
-        speakers.append( (a.text.strip(), URL_BASE+a['href']) )
+        speakers.append( (_spacify(a.text), URL_BASE+a['href']) )
     
     data['speakers'] = speakers
     return data
