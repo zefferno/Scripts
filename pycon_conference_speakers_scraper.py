@@ -22,6 +22,12 @@ DATA_HANDLES = dict(
     sessions = 'speaker-word-session',
 )
 
+MISSING_SPEAKERS = [
+    ( 75,'Moshe Nahmias'),
+    (152,'Ori Rabin'),
+    (155,'Nadav Goldin')
+]
+
 # utility funcs
 
 def _notnull(data, key):
@@ -61,14 +67,13 @@ def find_sessions(head):
     items = [(x.text, _get_link(x)) for x in anchors]
     return items
 
-def find_speaker_data(head):
-    speaker = _find_parent_div(head, 'view-grouping')
-    content = _find_parent_div(head, 'view-grouping-content')
-    # several speakers might be packed together as a group with common image
-    group = _find_parent_div(content, 'view-grouping')
+def find_speaker_data(speaker, group=None, name=None):
+    if group is None: group = speaker
     
     data  = {}
-    data['name'] = _spacify(_find_unique(speaker, 'h1').text)
+    if name is None:
+        name = _spacify(_find_unique(speaker, 'h1').text)
+    data['name'] = name
     img_attr = _find_unique(group, 'img').attrs
     if not img_attr['alt']:
         assert 'default_avatar' in img_attr['src']
@@ -88,10 +93,14 @@ def find_speaker_data(head):
         if data[field]:
             a = data[field].find_all('a')[-1]
             data[field] = a['href']
-    
-    data['bio'] = ''.join([str(x) for x in data['bio'].contents])
-    data['sessions'] = find_sessions(data['sessions'])
 
+    if data['bio'] is None:
+        warnings.warn('missing bio for {0}'.format(data['name']))
+        data['bio'] = ''
+    else:
+        data['bio'] = ''.join([str(x) for x in data['bio'].contents])
+    data['sessions'] = find_sessions(data['sessions'])
+    
     twit = data['twitter']
     if twit and 'github' in twit:
         data['github'] = twit
@@ -123,8 +132,28 @@ if __name__ == "__main__":
     db = []
     for head in speakerlist.find_all('h1'):
         if head.text == 'Pycon Israel Team': continue
-        db.append(find_speaker_data(head))    
+        
+        speaker = _find_parent_div(head, 'view-grouping')
+        content = _find_parent_div(head, 'view-grouping-content')
+        # several speakers might be packed together as a group with common image
+        group = _find_parent_div(content, 'view-grouping')
+        db.append(find_speaker_data(speaker, group))
     
+    # Now, need to scrape some people who do not appear in the main speakers page
+    # (bug in the site: co-speakers were not listed)
+    for sid, name in MISSING_SPEAKERS:
+        link = URL_BASE + '/wwwpyconIL/speakers_info/{0}'.format(sid)
+        print("[+] fetching missing speaker id {0}:".format(sid))
+        requests_res = requests.get(link)
+        assert requests_res.status_code == requests.codes.ok, "http error"
+        print("[+] parsing item {0}:".format(sid))
+        soup = BeautifulSoup(requests_res.text, "html.parser")
+        cospeaker = _find_unique(soup, 'div', class_='view-co-speakersandsession')
+        img = cospeaker.find('img')
+        speaker = _find_parent_div(img, 'view-grouping')
+        db.append(find_speaker_data(speaker, name=name))
+
+    # print results
     pretty_table = PrettyTable(['Full Name', 'Pic', 'In', 'twit', 'GH', 'sessions', 'bio'])
 
     for speaker in db:
