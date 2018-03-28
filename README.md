@@ -1,3 +1,3 @@
 # Scripts
 
-Scripts for Windows, Linux and etc.
+A container for scripts written in various languages.
